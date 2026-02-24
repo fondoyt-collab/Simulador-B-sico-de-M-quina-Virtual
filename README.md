@@ -47,7 +47,7 @@ Este proyecto es un simulador funcional de una arquitectura de computadora bási
 
 1.  Clona este repositorio:
     ```bash
-    git clone [https://github.com/tu-usuario/Simulador-Maquina-Virtual.git](https://github.com/tu-usuario/Simulador-Maquina-Virtual.git)
+    git clone [https://github.com/fondoyt-collab/Simulador-B-sico-de-M-quina-Virtual.git)
     ```
 2.  Abre el archivo `index.html` en tu navegador favorito (Recomendado: **Opera GX** o **Chrome**).
 
