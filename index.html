@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador Micro-SCRUM - Entregable Final</title>
+    <style>
+        :root { --main-bg: #f4f7f6; --term-bg: #121212; --accent: #2ecc71; --error: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: var(--main-bg); color: #333; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .registro { font-size: 1.5rem; margin: 10px 0; font-family: 'Consolas', monospace; }
+        .registro span { font-weight: bold; color: #2980b9; }
+        
+        .controles { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        button, select, input { padding: 10px 15px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; }
+        button { background: #34495e; color: white; cursor: pointer; border: none; }
+        button:hover { background: #2c3e50; }
+
+        .consola-terminal { 
+            background: var(--term-bg); color: var(--accent); padding: 15px; height: 250px; 
+            overflow-y: auto; font-family: 'Consolas', monospace; border-radius: 6px 6px 0 0;
+            box-shadow: inset 0 0 10px #000; line-height: 1.4;
+        }
+        .input-line { 
+            display: flex; background: #1a1a1a; padding: 12px; border-radius: 0 0 6px 6px; 
+            border-top: 1px solid #333; align-items: center;
+        }
+        .input-line span { color: var(--accent); margin-right: 10px; font-weight: bold; }
+        #cmd-input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+    </style>
+</head>
+<body>
+
+    <h1>Simulador Micro-SCRUM: Sistema Robusto</h1>
+    
+    <div class="panel">
+        <div class="registro">AX: <span id="val-AX">0</span></div>
+        <div class="registro">BX: <span id="val-BX">0</span></div>
+        <div class="registro">CX: <span id="val-CX">0</span></div>
+    </div>
+
+    <div class="controles">
+        <select id="select-reg">
+            <option value="AX">AX</option>
+            <option value="BX">BX</option>
+            <option value="CX">CX</option>
+        </select>
+        <button onclick="ejecutarAccion('INC')">INC</button>
+        <button onclick="ejecutarAccion('DEC')">DEC</button>
+        <button onclick="ejecutarAccion('COMP')">COMP</button>
+        <button onclick="ejecutarAccion('CLR')" style="background: #95a5a6;">CLR</button>
+    </div>
+
+    <div class="terminal-wrapper">
+        <div id="consola" class="consola-terminal">
+            <div>> Simulador v3.0 iniciado. [Día 8: Robusto]</div>
+            <div>> Comandos: INC [reg], DEC [reg], COMP, WHILE [reg] [lim], LOOP [reg] [veces]</div>
+        </div>
+        <div class="input-line">
+            <span>$</span>
+            <input type="text" id="cmd-input" placeholder="Escribe un comando..." autocomplete="off">
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA DE LA MÁQUINA (Clase Maquina) ---
+        class Maquina {
+            constructor() {
+                this.AX = 0; this.BX = 0; this.CX = 0;
+            }
+
+            // DÍA 3: Incremento/Decremento
+            inc(reg) { if (this.hasOwnProperty(reg)) this[reg]++; }
+            dec(reg) { if (this.hasOwnProperty(reg)) this[reg]--; }
+
+            // DÍA 4: Comparación
+            comp() {
+                if (this.AX === this.BX) return "AX es igual a BX";
+                return this.AX > this.BX ? "AX es mayor que BX" : "AX es menor que BX";
+            }
+
+            // DÍA 6: Ciclo FOR
+            loop(reg, n) {
+                for(let i=0; i<n; i++) this.inc(reg);
+                return `Loop completado: ${n} iteraciones en ${reg}`;
+            }
+
+            // DÍA 7: Ciclo WHILE con Límite de Seguridad
+            whileLimit(reg, limite) {
+                let contador = 0;
+                const MAX_SEGURIDAD = 1000;
+                while (this[reg] < limite && contador < MAX_SEGURIDAD) {
+                    this.inc(reg);
+                    contador++;
+                }
+                if (contador >= MAX_SEGURIDAD) return `⚠️ Alerta: Seguridad activada en iteración ${contador}`;
+                return `While finalizado: ${contador} ciclos realizados.`;
+            }
+        }
+
+        const vm = new Maquina();
+        const consola = document.getElementById('consola');
+        const input = document.getElementById('cmd-input');
+
+        function updateUI() {
+            document.getElementById('val-AX').innerText = vm.AX;
+            document.getElementById('val-BX').innerText = vm.BX;
+            document.getElementById('val-CX').innerText = vm.CX;
+        }
+
+        function log(msg, color = "#2ecc71") {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] > ${msg}`;
+            consola.appendChild(div);
+            consola.scrollTop = consola.scrollHeight;
+        }
+
+        // DÍA 8: Validación NaN y Manejo de Errores
+        function procesar(texto) {
+            const partes = texto.trim().toUpperCase().split(' ');
+            const cmd = partes[0];
+            const arg1 = partes[1]; // Registro
+            const arg2 = parseInt(partes[2]); // Valor numérico
+
+            // Validación de comandos que requieren números (Día 8)
+            if (['LOOP', 'WHILE'].includes(cmd) && isNaN(arg2)) {
+                log(`Error NaN: El valor '${partes[2]}' no es un número válido.`, "#e74c3c");
+                return;
+            }
+
+            let res = "";
+            switch(cmd) {
+                case 'INC': vm.inc(arg1 || 'AX'); res = `Incrementado ${arg1 || 'AX'}`; break;
+                case 'DEC': vm.dec(arg1 || 'AX'); res = `Decrementado ${arg1 || 'AX'}`; break;
+                case 'COMP': res = vm.comp(); break;
+                case 'LOOP': res = vm.loop(arg1, arg2); break;
+                case 'WHILE': res = vm.whileLimit(arg1, arg2); break;
+                case 'CLR': vm.AX=0; vm.BX=0; vm.CX=0; res = "Registros en 0"; break;
+                default: log(`Error: Comando '${cmd}' no reconocido.`, "#e74c3c"); return;
+            }
+            log(res);
+            updateUI();
+        }
+
+        function ejecutarAccion(cmd) {
+            const reg = document.getElementById('select-reg').value;
+            procesar(`${cmd} ${reg}`);
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                procesar(input.value);
+                input.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
