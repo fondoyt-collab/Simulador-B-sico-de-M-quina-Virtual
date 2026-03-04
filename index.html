@@ -4,155 +4,264 @@
     <meta charset="UTF-8">
     <title>Simulador Micro-SCRUM - Entregable Final</title>
     <style>
-        :root { --main-bg: #f4f7f6; --term-bg: #121212; --accent: #2ecc71; --error: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: var(--main-bg); color: #333; }
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .registro { font-size: 1.5rem; margin: 10px 0; font-family: 'Consolas', monospace; }
-        .registro span { font-weight: bold; color: #2980b9; }
-        
-        .controles { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-        button, select, input { padding: 10px 15px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; }
-        button { background: #34495e; color: white; cursor: pointer; border: none; }
-        button:hover { background: #2c3e50; }
+        /* ESTILOS (CSS) */
+        :root { 
+            --bg-body: #f4f7f6; 
+            --panel-bg: #ffffff; 
+            --term-bg: #1e1e1e; 
+            --accent: #3498db; 
+            --text: #2c3e50;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); padding: 20px; color: var(--text); }
+        h1 { text-align: center; margin-bottom: 20px; }
 
-        .consola-terminal { 
-            background: var(--term-bg); color: var(--accent); padding: 15px; height: 250px; 
-            overflow-y: auto; font-family: 'Consolas', monospace; border-radius: 6px 6px 0 0;
-            box-shadow: inset 0 0 10px #000; line-height: 1.4;
-        }
-        .input-line { 
-            display: flex; background: #1a1a1a; padding: 12px; border-radius: 0 0 6px 6px; 
-            border-top: 1px solid #333; align-items: center;
-        }
-        .input-line span { color: var(--accent); margin-right: 10px; font-weight: bold; }
-        #cmd-input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+        /* Layout Grid */
+        .contenedor { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        
+        /* Paneles */
+        .panel { background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Registros */
+        .fila-reg { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .fila-reg:last-child { border-bottom: none; }
+        .reg-label { font-size: 1.5rem; font-weight: bold; color: #e67e22; font-family: 'Consolas'; }
+        .reg-val { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-right: 15px; font-family: 'Consolas'; }
+        .bases { font-size: 0.8rem; background: #eee; padding: 4px 8px; border-radius: 4px; color: #555; font-family: 'Consolas'; }
+
+        /* Controles */
+        .controles { display: flex; flex-wrap: wrap; gap: 10px; }
+        select { padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        
+        .btn-blue { background: #34495e; }
+        .btn-purple { background: #8e44ad; }
+        .btn-green { background: #27ae60; }
+        .btn-orange { background: #d35400; }
+        .btn-red { background: #c0392b; }
+
+        /* Tabla Pila */
+        .tabla-pila { width: 100%; border-collapse: collapse; text-align: center; font-family: monospace; }
+        .tabla-pila th { background: #34495e; color: white; padding: 8px; }
+        .tabla-pila td { border: 1px solid #ddd; padding: 6px; }
+        .tabla-pila tr:first-child td { background: #d4efdf; font-weight: bold; }
+
+        /* Terminal */
+        .terminal-wrap { grid-column: 1 / -1; }
+        .consola { background: var(--term-bg); color: #2ecc71; height: 250px; overflow-y: auto; padding: 15px; font-family: 'Consolas', monospace; border-radius: 8px 8px 0 0; }
+        .input-area { display: flex; background: #000; padding: 10px; border-radius: 0 0 8px 8px; align-items: center; }
+        #cmd-input { flex-grow: 1; background: transparent; border: none; color: white; font-family: 'Consolas'; font-size: 1rem; margin-left: 10px; outline: none; }
     </style>
 </head>
 <body>
 
-    <h1>Simulador Micro-SCRUM: Sistema Robusto</h1>
-    
-    <div class="panel">
-        <div class="registro">AX: <span id="val-AX">0</span></div>
-        <div class="registro">BX: <span id="val-BX">0</span></div>
-        <div class="registro">CX: <span id="val-CX">0</span></div>
-    </div>
+    <h1>Simulador Micro-SCRUM</h1>
 
-    <div class="controles">
-        <select id="select-reg">
-            <option value="AX">AX</option>
-            <option value="BX">BX</option>
-            <option value="CX">CX</option>
-        </select>
-        <button onclick="ejecutarAccion('INC')">INC</button>
-        <button onclick="ejecutarAccion('DEC')">DEC</button>
-        <button onclick="ejecutarAccion('COMP')">COMP</button>
-        <button onclick="ejecutarAccion('CLR')" style="background: #95a5a6;">CLR</button>
-    </div>
+    <div class="contenedor">
+        <div class="col-izq">
+            <div class="panel">
+                <h3>Registros (Multibase)</h3>
+                <div class="fila-reg">
+                    <span class="reg-label">AX</span>
+                    <div>
+                        <span id="val-AX" class="reg-val">0</span>
+                        <span class="bases">HEX: <span id="hex-AX">0x00</span> | BIN: <span id="bin-AX">00000000</span></span>
+                    </div>
+                </div>
+                <div class="fila-reg">
+                    <span class="reg-label">BX</span>
+                    <div>
+                        <span id="val-BX" class="reg-val">0</span>
+                        <span class="bases">HEX: <span id="hex-BX">0x00</span> | BIN: <span id="bin-BX">00000000</span></span>
+                    </div>
+                </div>
+                <div class="fila-reg">
+                    <span class="reg-label">CX</span>
+                    <div>
+                        <span id="val-CX" class="reg-val">0</span>
+                        <span class="bases">HEX: <span id="hex-CX">0x00</span> | BIN: <span id="bin-CX">00000000</span></span>
+                    </div>
+                </div>
+            </div>
 
-    <div class="terminal-wrapper">
-        <div id="consola" class="consola-terminal">
-            <div>> Simulador v3.0 iniciado. [Día 8: Robusto]</div>
-            <div>> Comandos: INC [reg], DEC [reg], COMP, WHILE [reg] [lim], LOOP [reg] [veces]</div>
+            <div class="panel">
+                <h3>Panel de Control</h3>
+                <div class="controles">
+                    <select id="select-reg">
+                        <option value="AX">AX</option>
+                        <option value="BX">BX</option>
+                        <option value="CX">CX</option>
+                    </select>
+                    
+                    <button class="btn-blue" onclick="ejecutarAccion('INC')">INC</button>
+                    <button class="btn-blue" onclick="ejecutarAccion('DEC')">DEC</button>
+                    
+                    <button class="btn-purple" onclick="ejecutarAccion('PUSH')">PUSH</button>
+                    <button class="btn-purple" onclick="ejecutarAccion('POP')">POP</button>
+                    
+                    <button class="btn-orange" onclick="ejecutarAccion('SHL')">SHL (<<)</button>
+                    <button class="btn-orange" onclick="ejecutarAccion('SHR')">SHR (>>)</button>
+
+                    <button class="btn-green" onclick="ejecutarAccion('LOGIC')">LOGIC</button>
+                    <button class="btn-blue" onclick="ejecutarAccion('STATUS')">STATUS</button>
+                    <button class="btn-red" onclick="ejecutarAccion('CLR')">RESET</button>
+                </div>
+            </div>
         </div>
-        <div class="input-line">
-            <span>$</span>
-            <input type="text" id="cmd-input" placeholder="Escribe un comando..." autocomplete="off">
+
+        <div class="col-der">
+            <div class="panel">
+                <h3>Memoria de Pila</h3>
+                <table class="tabla-pila">
+                    <thead><tr><th>Ref</th><th>Dato</th></tr></thead>
+                    <tbody id="pila-body"><tr><td colspan="2">Vacía</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="terminal-wrap">
+            <div id="consola" class="consola">
+                <div>> Sistema v5.0 iniciado...</div>
+                <div>> Escribe comandos: LOOP, WHILE, INC...</div>
+            </div>
+            <div class="input-area">
+                <span style="color:#2ecc71">$</span>
+                <input type="text" id="cmd-input" placeholder="Comando..." autocomplete="off">
+            </div>
         </div>
     </div>
 
     <script>
-        // --- LÓGICA DE LA MÁQUINA (Clase Maquina) ---
+        // --- CLASE MAQUINA (Lógica) ---
         class Maquina {
             constructor() {
                 this.AX = 0; this.BX = 0; this.CX = 0;
+                this.pila = [];
             }
 
-            // DÍA 3: Incremento/Decremento
-            inc(reg) { if (this.hasOwnProperty(reg)) this[reg]++; }
-            dec(reg) { if (this.hasOwnProperty(reg)) this[reg]--; }
+            // PROCESADOR CENTRAL (Switch)
+            ejecutarComando(input) {
+                const partes = input.trim().toUpperCase().split(/\s+/);
+                const cmd = partes[0];
+                const arg1 = partes[1]; // Registro
+                const arg2 = partes[2]; // Valor
 
-            // DÍA 4: Comparación
-            comp() {
-                if (this.AX === this.BX) return "AX es igual a BX";
-                return this.AX > this.BX ? "AX es mayor que BX" : "AX es menor que BX";
-            }
-
-            // DÍA 6: Ciclo FOR
-            loop(reg, n) {
-                for(let i=0; i<n; i++) this.inc(reg);
-                return `Loop completado: ${n} iteraciones en ${reg}`;
-            }
-
-            // DÍA 7: Ciclo WHILE con Límite de Seguridad
-            whileLimit(reg, limite) {
-                let contador = 0;
-                const MAX_SEGURIDAD = 1000;
-                while (this[reg] < limite && contador < MAX_SEGURIDAD) {
-                    this.inc(reg);
-                    contador++;
+                switch (cmd) {
+                    case 'INC': this.inc(arg1 || 'AX'); return `INC: ${arg1 || 'AX'} +1`;
+                    case 'DEC': this.dec(arg1 || 'AX'); return `DEC: ${arg1 || 'AX'} -1`;
+                    case 'COMP': return this.comparar();
+                    case 'LOOP': return this.loop(arg1, arg2);
+                    case 'WHILE': return this.whileLoop(arg1, arg2);
+                    case 'PUSH': return this.push(arg1);
+                    case 'POP': return this.pop(arg1 || 'AX');
+                    case 'SHL': this.shl(arg1 || 'AX'); return `SHL: ${arg1 || 'AX'} << 1`;
+                    case 'SHR': this.shr(arg1 || 'AX'); return `SHR: ${arg1 || 'AX'} >> 1`;
+                    case 'LOGIC': return this.logic();
+                    case 'STATUS': return this.status();
+                    case 'CLR': this.AX=0; this.BX=0; this.CX=0; this.pila=[]; return "RESET COMPLETO";
+                    default: return `Error: Comando '${cmd}' desconocido.`;
                 }
-                if (contador >= MAX_SEGURIDAD) return `⚠️ Alerta: Seguridad activada en iteración ${contador}`;
-                return `While finalizado: ${contador} ciclos realizados.`;
+            }
+
+            // MÉTODOS OPERATIVOS
+            inc(r) { if(this.hasOwnProperty(r)) this[r] = (this[r]+1) & 0xFF; }
+            dec(r) { if(this.hasOwnProperty(r)) this[r] = (this[r]-1) & 0xFF; }
+            
+            comparar() {
+                if(this.AX === this.BX) return "AX == BX";
+                return this.AX > this.BX ? "AX > BX" : "AX < BX";
+            }
+
+            loop(r, n) {
+                const it = parseInt(n);
+                if(isNaN(it)) return "Error: Cantidad inválida";
+                for(let i=0; i<it; i++) this.inc(r);
+                return `LOOP: ${it} ciclos en ${r}`;
+            }
+
+            whileLoop(r, lim) {
+                let c=0, meta=parseInt(lim);
+                while(this[r] < meta && c < 1000) { this.inc(r); c++; }
+                return c>=1000 ? "⚠️ Límite seguridad alcanzado" : `WHILE: ${c} ciclos`;
+            }
+
+            push(v) {
+                let n = this.hasOwnProperty(v) ? this[v] : parseInt(v);
+                if(isNaN(n)) return "Error PUSH";
+                this.pila.push(n & 0xFF); return `PUSH ${n & 0xFF}`;
+            }
+
+            pop(r) {
+                if(this.pila.length===0) return "Error: Pila vacía";
+                this[r] = this.pila.pop(); return `POP a ${r}`;
+            }
+
+            // BITS & LÓGICA
+            shl(r) { if(this.hasOwnProperty(r)) this[r] = (this[r] << 1) & 0xFF; }
+            shr(r) { if(this.hasOwnProperty(r)) this[r] = (this[r] >> 1) & 0xFF; }
+
+            logic() {
+                const p = this.AX > 10;
+                const q = (this.BX % 2 === 0);
+                return `LÓGICA (AX>10 AND BX es PAR): \n P=${p}, Q=${q} => RES=${p && q}`;
+            }
+
+            // BASES
+            hex(r) { return "0x" + (this[r] >>> 0).toString(16).toUpperCase().padStart(2,'0'); }
+            bin(r) { return (this[r] >>> 0).toString(2).padStart(8,'0'); }
+
+            status() {
+                return `ESTADO:\n AX:${this.AX} BX:${this.BX} CX:${this.CX}\n PILA:[${this.pila}]`;
             }
         }
 
+        // --- CONTROLADOR (APP) ---
         const vm = new Maquina();
         const consola = document.getElementById('consola');
-        const input = document.getElementById('cmd-input');
-
+        
         function updateUI() {
-            document.getElementById('val-AX').innerText = vm.AX;
-            document.getElementById('val-BX').innerText = vm.BX;
-            document.getElementById('val-CX').innerText = vm.CX;
+            ['AX','BX','CX'].forEach(r => {
+                document.getElementById(`val-${r}`).innerText = vm[r];
+                document.getElementById(`hex-${r}`).innerText = vm.hex(r);
+                document.getElementById(`bin-${r}`).innerText = vm.bin(r);
+            });
+            updatePila();
         }
 
-        function log(msg, color = "#2ecc71") {
+        function updatePila() {
+            const b = document.getElementById('pila-body');
+            if(vm.pila.length === 0) b.innerHTML = '<tr><td colspan="2">Vacía</td></tr>';
+            else b.innerHTML = [...vm.pila].reverse().map((v,i) => `<tr><td>SP-${i}</td><td>${v}</td></tr>`).join('');
+        }
+
+        function log(msg) {
             const div = document.createElement('div');
-            div.style.color = color;
-            div.innerHTML = `[${new Date().toLocaleTimeString()}] > ${msg}`;
+            div.innerText = `> ${msg}`;
+            if(msg.includes('Error') || msg.includes('⚠️')) div.style.color = '#e74c3c';
             consola.appendChild(div);
             consola.scrollTop = consola.scrollHeight;
         }
 
-        // DÍA 8: Validación NaN y Manejo de Errores
-        function procesar(texto) {
-            const partes = texto.trim().toUpperCase().split(' ');
-            const cmd = partes[0];
-            const arg1 = partes[1]; // Registro
-            const arg2 = parseInt(partes[2]); // Valor numérico
-
-            // Validación de comandos que requieren números (Día 8)
-            if (['LOOP', 'WHILE'].includes(cmd) && isNaN(arg2)) {
-                log(`Error NaN: El valor '${partes[2]}' no es un número válido.`, "#e74c3c");
-                return;
-            }
-
-            let res = "";
-            switch(cmd) {
-                case 'INC': vm.inc(arg1 || 'AX'); res = `Incrementado ${arg1 || 'AX'}`; break;
-                case 'DEC': vm.dec(arg1 || 'AX'); res = `Decrementado ${arg1 || 'AX'}`; break;
-                case 'COMP': res = vm.comp(); break;
-                case 'LOOP': res = vm.loop(arg1, arg2); break;
-                case 'WHILE': res = vm.whileLimit(arg1, arg2); break;
-                case 'CLR': vm.AX=0; vm.BX=0; vm.CX=0; res = "Registros en 0"; break;
-                default: log(`Error: Comando '${cmd}' no reconocido.`, "#e74c3c"); return;
-            }
+        function procesar(txt) {
+            if(!txt.trim()) return;
+            const res = vm.ejecutarComando(txt);
             log(res);
             updateUI();
         }
 
+        // Eventos
+        document.getElementById('cmd-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') { procesar(e.target.value); e.target.value=''; }
+        });
+
         function ejecutarAccion(cmd) {
             const reg = document.getElementById('select-reg').value;
-            procesar(`${cmd} ${reg}`);
+            if(['STATUS','CLR','LOGIC','COMP'].includes(cmd)) procesar(cmd);
+            else procesar(`${cmd} ${reg}`);
         }
 
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                procesar(input.value);
-                input.value = '';
-            }
-        });
+        // Inicio
+        updateUI();
     </script>
 </body>
 </html>
